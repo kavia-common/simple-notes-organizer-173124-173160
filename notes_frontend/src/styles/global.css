@@ -1,0 +1,47 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Ocean Professional theme globals */
+:root {
+  --color-primary: #2563EB;
+  --color-secondary: #F59E0B;
+  --color-error: #EF4444;
+  --color-bg: #f9fafb;
+  --color-surface: #ffffff;
+  --color-text: #111827;
+}
+
+html, body, #app-root {
+  height: 100%;
+}
+
+body {
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+
+/* Utilities */
+.o-card {
+  @apply bg-surface rounded-xl shadow-soft border border-gray-200;
+}
+.o-btn {
+  @apply inline-flex items-center gap-2 px-3 py-2 rounded-lg transition-colors duration-200;
+}
+.o-btn-primary {
+  @apply o-btn bg-primary text-white hover:bg-blue-600 focus:ring-2 focus:ring-blue-300;
+}
+.o-btn-ghost {
+  @apply o-btn bg-transparent text-text hover:bg-gray-100;
+}
+.o-input {
+  @apply w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-300;
+}
+.o-tag {
+  @apply inline-flex items-center gap-1 px-2 py-1 text-xs rounded-md bg-blue-50 text-blue-700 border border-blue-100;
+}
+
+/* Subtle gradient backgrounds */
+.bg-ocean-subtle {
+  background-image: linear-gradient(135deg, rgba(59,130,246,0.08), rgba(243,244,246,0.6));
+}

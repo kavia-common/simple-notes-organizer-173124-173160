@@ -1,0 +1,144 @@
+---
+/**
+ * Sidebar lists notes, supports text search and tag filtering.
+ */
+---
+
+<aside class="h-full w-full lg:w-80 border-r border-gray-200 bg-white/70 backdrop-blur">
+  <div class="p-3 space-y-3">
+    <input
+      id="search-input"
+      class="o-input"
+      placeholder="Search notes..."
+      aria-label="Search notes"
+    />
+    <div class="space-y-2">
+      <h3 class="text-xs uppercase text-gray-500">Tags</h3>
+      <div id="tags-container" class="flex flex-wrap gap-2"></div>
+    </div>
+  </div>
+  <div id="notes-list" class="overflow-y-auto h-[calc(100%-120px)] p-2 space-y-2"></div>
+</aside>
+
+<script>
+  import { subscribe, getState, selectNote } from "../lib/storage.ts";
+
+  let search = "";
+  let tagFilter = new Set();
+
+  function renderTags(notes) {
+    const c = document.getElementById("tags-container");
+    if (!c) return;
+    c.innerHTML = "";
+    const tags = new Set(notes.flatMap((n) => n.tags));
+    if (tags.size === 0) {
+      const span = document.createElement("span");
+      span.className = "text-xs text-gray-400";
+      span.textContent = "No tags yet";
+      c.appendChild(span);
+      return;
+    }
+    tags.forEach((t) => {
+      const btn = document.createElement("button");
+      const active = tagFilter.has(t);
+      btn.className = `o-tag ${active ? "!bg-blue-100 !text-blue-900" : ""}`;
+      btn.textContent = t;
+      btn.setAttribute("aria-pressed", String(active));
+      btn.onclick = () => {
+        if (tagFilter.has(t)) tagFilter.delete(t);
+        else tagFilter.add(t);
+        render();
+      };
+      c.appendChild(btn);
+    });
+    if (tags.size > 0) {
+      const clear = document.createElement("button");
+      clear.className = "o-btn-ghost text-sm";
+      clear.textContent = "Clear tags";
+      clear.onclick = () => {
+        tagFilter = new Set();
+        render();
+      };
+      c.appendChild(clear);
+    }
+  }
+
+  function renderNotesList(notes, selectedId) {
+    const list = document.getElementById("notes-list");
+    if (!list) return;
+    list.innerHTML = "";
+
+    const filtered = notes
+      .filter((n) => {
+        const textMatch =
+          !search ||
+          n.title.toLowerCase().includes(search) ||
+          n.content.toLowerCase().includes(search);
+        const tagsMatch = tagFilter.size === 0 || n.tags.some((t) => tagFilter.has(t));
+        return textMatch && tagsMatch;
+      })
+      .sort((a, b) => b.updatedAt - a.updatedAt);
+
+    if (filtered.length === 0) {
+      const empty = document.createElement("div");
+      empty.className = "o-card p-4 text-center text-gray-500";
+      empty.textContent = "No notes found. Create a new one to get started.";
+      list.appendChild(empty);
+      return;
+    }
+
+    for (const n of filtered) {
+      const item = document.createElement("button");
+      item.className =
+        "w-full text-left o-card p-3 hover:bg-gray-50 transition " +
+        (n.id === selectedId ? "ring-2 ring-blue-300" : "");
+      item.onclick = () => selectNote(n.id);
+
+      const title = document.createElement("div");
+      title.className = "font-medium text-text line-clamp-1";
+      title.textContent = n.title || "Untitled";
+      item.appendChild(title);
+
+      const meta = document.createElement("div");
+      meta.className = "text-xs text-gray-500 mt-1 flex justify-between items-center";
+      const date = new Date(n.updatedAt).toLocaleString();
+      meta.textContent = `Updated ${date}`;
+      item.appendChild(meta);
+
+      if (n.tags.length) {
+        const tagsDiv = document.createElement("div");
+        tagsDiv.className = "mt-2 flex flex-wrap gap-1";
+        n.tags.forEach((t) => {
+          const tag = document.createElement("span");
+          tag.className = "o-tag";
+          tag.textContent = t;
+          tagsDiv.appendChild(tag);
+        });
+        item.appendChild(tagsDiv);
+      }
+
+      list.appendChild(item);
+    }
+  }
+
+  function render() {
+    const s = getState();
+    renderTags(s.notes);
+    renderNotesList(s.notes, s.selectedId);
+  }
+
+  function init() {
+    const searchInput = document.getElementById("search-input");
+    searchInput?.addEventListener("input", (e) => {
+      search = e.target.value.trim().toLowerCase();
+      render();
+    });
+    subscribe(() => render());
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", init);
+  } else {
+    init();
+  }
+</script>

@@ -9,6 +9,11 @@ export default [
   // TypeScript support
   ...tseslint.configs.recommended,
 
+  // Ignore generated Astro types
+  {
+    ignores: ['.astro/**'],
+  },
+
   {
     files: ['**/*.ts', '**/*.tsx'],
     languageOptions: {
@@ -20,7 +25,6 @@ export default [
       },
     },
     rules: {
-      // Example custom rules for TS
       '@typescript-eslint/no-unused-vars': ['warn'],
       '@typescript-eslint/explicit-function-return-type': 'off',
     },
